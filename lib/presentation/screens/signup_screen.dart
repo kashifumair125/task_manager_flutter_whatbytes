@@ -62,6 +62,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -69,19 +76,47 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 80),
-              const Icon(Icons.task_alt, size: 80, color: Colors.deepPurple),
               const SizedBox(height: 20),
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.deepPurple.shade100,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.deepPurple.withOpacity(0.3),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.task_alt, size: 80, color: Colors.deepPurple),
+              ),
+              const SizedBox(height: 30),
               Text(
                 "Let's get started!",
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
+                    ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Create an account to manage your tasks',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
               ),
               const SizedBox(height: 40),
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Email Address',
+                  hintText: 'Enter your email',
+                  prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -93,8 +128,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Password',
+                  hintText: 'Enter your password',
+                  prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                   ),
                   border: OutlineInputBorder(
@@ -102,6 +139,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ),
               ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade300),
+                    ),
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _register,
@@ -113,8 +166,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Sign up', style: TextStyle(fontSize: 16, color: Colors.white)),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Sign up', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 24),
               const Row(
@@ -122,7 +182,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text('or sign up with'),
+                    child: Text('or continue with', style: TextStyle(color: Colors.grey)),
                   ),
                   Expanded(child: Divider()),
                 ],
@@ -131,17 +191,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _socialLoginButton(icon: FontAwesomeIcons.google, color: Colors.red.shade700),
+                  _socialSignupButton(
+                    icon: FontAwesomeIcons.google,
+                    color: Colors.red.shade700,
+                    label: 'Google',
+                  ),
                 ],
               ),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Already have an account?'),
+                  const Text('Already have an account?', style: TextStyle(color: Colors.grey)),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Log in'),
+                    child: const Text('Log in', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -152,14 +216,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 
-  Widget _socialLoginButton({required IconData icon, required Color color}) {
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: color,
-      child: IconButton(
-        onPressed: () {},
-        icon: Icon(icon, color: Colors.white),
-      ),
+  Widget _socialSignupButton({
+    required IconData icon,
+    required Color color,
+    required String label,
+  }) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: color.withOpacity(0.1),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      ],
     );
   }
 }

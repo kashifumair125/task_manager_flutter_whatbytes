@@ -8,7 +8,6 @@ import '../providers/auth_provider.dart';
 import '../providers/filter_provider.dart';
 import '../providers/task_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../widgets/glassmorphic_container.dart';
 import 'edit_task_screen.dart';
 
 class TaskListScreen extends ConsumerStatefulWidget {
@@ -69,26 +68,56 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
+            backgroundColor: Colors.deepPurple,
+            elevation: 2,
             floating: true,
             pinned: true,
             expandedHeight: 120,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text('${DateFormat('d MMMM').format(DateTime.now())}, My Tasks', style: const TextStyle(fontSize: 16, color: Colors.white)),
-              background: GlassmorphicContainer(
-                borderRadius: 0,
-                child: Container(),
+              title: Text(
+                '${DateFormat('d MMMM').format(DateTime.now())}, My Tasks',
+                style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.deepPurple.shade700, Colors.deepPurple.shade500],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
             ),
             actions: [
-              IconButton(icon: const Icon(Icons.search, color: Colors.white), onPressed: () {}),
-              IconButton(icon: const Icon(Icons.filter_list, color: Colors.white), onPressed: _showFilterDialog),
-              IconButton(icon: const Icon(Icons.logout, color: Colors.white), onPressed: () => ref.read(logoutUseCaseProvider).call()),
+              IconButton(
+                icon: const Icon(Icons.search, color: Colors.white),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(Icons.filter_list, color: Colors.white),
+                onPressed: _showFilterDialog,
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white),
+                onPressed: () => ref.read(logoutUseCaseProvider).call(),
+              ),
             ],
           ),
           tasks.isEmpty
-              ? const SliverFillRemaining(child: Center(child: Text('No tasks yet. Create one!')))
+              ? const SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.task_alt, size: 80, color: Colors.deepPurple),
+                        SizedBox(height: 20),
+                        Text('No tasks yet.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                        SizedBox(height: 8),
+                        Text('Create one to get started!', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                )
               : SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -102,8 +131,14 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(groupTitle, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
+                            Text(
+                              groupTitle,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurple,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
                             ...groupTasks.map((task) => _TaskCard(task: task)),
                           ],
                         ),
@@ -161,18 +196,92 @@ class _TaskCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GlassmorphicContainer(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: task.isCompleted ? Colors.grey.shade300 : Colors.deepPurple.shade200,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: ListTile(
-        leading: Checkbox(value: task.isCompleted, onChanged: (val) => ref.read(tasksProvider.notifier).markTaskComplete(task.id, val ?? false), checkColor: Colors.white, activeColor: Colors.deepPurple),
-        title: Text(task.title, style: TextStyle(decoration: task.isCompleted ? TextDecoration.lineThrough : null, color: Colors.white, fontWeight: FontWeight.bold)),
-        subtitle: Text(task.description, style: TextStyle(color: Colors.white70)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Chip(label: Text(task.priority.name, style: const TextStyle(color: Colors.white)), backgroundColor: _getPriorityColor(task.priority)),
-            IconButton(icon: const Icon(FontAwesomeIcons.penToSquare, color: Colors.white, size: 20), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EditTaskScreen(task: task)))),
-            IconButton(icon: const Icon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 20), onPressed: () => ref.read(tasksProvider.notifier).deleteTask(task.id)),
-          ],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: Transform.scale(
+          scale: 1.2,
+          child: Checkbox(
+            value: task.isCompleted,
+            onChanged: (val) => ref.read(tasksProvider.notifier).markTaskComplete(task.id, val ?? false),
+            checkColor: Colors.white,
+            activeColor: Colors.deepPurple,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+        ),
+        title: Text(
+          task.title,
+          style: TextStyle(
+            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+            color: task.isCompleted ? Colors.grey.shade500 : Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            task.description,
+            style: TextStyle(
+              color: task.isCompleted ? Colors.grey.shade400 : Colors.grey.shade600,
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        trailing: SizedBox(
+          width: 150,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getPriorityColor(task.priority).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  task.priority.name.toUpperCase(),
+                  style: TextStyle(
+                    color: _getPriorityColor(task.priority),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.penToSquare, color: Colors.deepPurple, size: 18),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => EditTaskScreen(task: task)),
+                ),
+                tooltip: 'Edit',
+              ),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 18),
+                onPressed: () => ref.read(tasksProvider.notifier).deleteTask(task.id),
+                tooltip: 'Delete',
+              ),
+            ],
+          ),
         ),
       ),
     );

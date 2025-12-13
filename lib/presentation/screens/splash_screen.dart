@@ -39,16 +39,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.task_alt, size: 100, color: Colors.deepPurple),
-            SizedBox(height: 20),
-            Text('Task Manager', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            CircularProgressIndicator(),
+            Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.deepPurple.shade100,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.deepPurple.withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.task_alt, size: 100, color: Colors.deepPurple),
+            ),
+            const SizedBox(height: 30),
+            const Text('Task Manager', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+            const SizedBox(height: 10),
+            Text('Organize Your Tasks', style: TextStyle(fontSize: 14, color: Colors.deepPurple.shade600, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 40),
+            const CircularProgressIndicator(color: Colors.deepPurple),
           ],
         ),
       ),

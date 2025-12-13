@@ -130,8 +130,21 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: icon != null ? Icon(icon) : null,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        prefixIcon: icon != null ? Icon(icon, color: Colors.deepPurple) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.deepPurple.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.deepPurple.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     );
   }
@@ -141,12 +154,32 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
       value: _selectedPriority,
       decoration: InputDecoration(
         labelText: 'Priority',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        prefixIcon: const Icon(Icons.flag_outlined, color: Colors.deepPurple),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.deepPurple.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.deepPurple.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
       items: Priority.values.map((p) {
         return DropdownMenuItem(
           value: p,
-          child: Text(p.name.toUpperCase(), style: TextStyle(color: _getPriorityColor(p))),
+          child: Text(
+            p.name.toUpperCase(),
+            style: TextStyle(
+              color: _getPriorityColor(p),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         );
       }).toList(),
       onChanged: (Priority? value) {
@@ -156,13 +189,24 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
   }
 
   Widget _buildDueDateSelector() {
-    return ListTile(
-      title: Text(DateFormat('d MMMM yyyy').format(_selectedDueDate)),
-      trailing: const Icon(Icons.calendar_today),
-      onTap: _selectDueDate,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.deepPurple.shade200),
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade400),
+        color: Colors.white,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: const Icon(Icons.calendar_today, color: Colors.deepPurple),
+        title: Text(
+          DateFormat('d MMMM yyyy').format(_selectedDueDate),
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+        ),
+        trailing: Icon(Icons.arrow_forward, color: Colors.deepPurple.shade400),
+        onTap: _selectDueDate,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     );
   }

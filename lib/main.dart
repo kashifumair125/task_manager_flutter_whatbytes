@@ -40,7 +40,47 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.deepPurple.shade50,
+        scaffoldBackgroundColor: Colors.grey.shade50,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          elevation: 2,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.deepPurple.shade200),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.deepPurple.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+          ),
+          labelStyle: const TextStyle(color: Colors.black87),
+          prefixIconColor: Colors.deepPurple,
+          suffixIconColor: Colors.deepPurple,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurple,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.deepPurple,
+            textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ),
       ),
       home: const SplashScreen(),
     );
