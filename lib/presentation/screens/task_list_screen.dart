@@ -90,15 +90,18 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.search, color: Colors.white),
+                icon: const Icon(FontAwesomeIcons.magnifyingGlass, color: Colors.white, size: 24),
+                tooltip: 'Search Tasks',
                 onPressed: () {},
               ),
               IconButton(
-                icon: const Icon(Icons.filter_list, color: Colors.white),
+                icon: const Icon(FontAwesomeIcons.sliders, color: Colors.white, size: 24),
+                tooltip: 'Filter Tasks',
                 onPressed: _showFilterDialog,
               ),
               IconButton(
-                icon: const Icon(Icons.logout, color: Colors.white),
+                icon: const Icon(FontAwesomeIcons.rightFromBracket, color: Colors.white, size: 24),
+                tooltip: 'Logout',
                 onPressed: () => ref.read(logoutUseCaseProvider).call(),
               ),
             ],
@@ -152,7 +155,8 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditTaskScreen())),
         backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.add, color: Colors.white),
+        tooltip: 'Add New Task',
+        child: const Icon(FontAwesomeIcons.plus, color: Colors.white, size: 28),
       ),
     );
   }
