@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Firebase Configuration -->
+    <string name="default_web_client_id" translatable="false">370194898940</string>
+    <string name="firebase_database_url" translatable="false">https://task-manager-253d2-default-rtdb.firebaseio.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">370194898940</string>
+    <string name="google_api_key" translatable="false">AIzaSyAt4nSLLZASlyUZN57XRjS7k_S-6DqYzEc</string>
+    <string name="google_app_id" translatable="false">1:370194898940:android:285ddd1a2fc3adb25f5c79</string>
+    <string name="google_storage_bucket" translatable="false">task-manager-253d2.firebasestorage.app</string>
+    <string name="project_id" translatable="false">task-manager-253d2</string>
+</resources>
+
