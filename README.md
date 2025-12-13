@@ -15,7 +15,19 @@ A simple task management app for gig workers that allows users to create, update
 
 ## 📸 Screenshots / Screen Recording
 
-*(Add your screenshots or a screen recording here)*
+<table>
+  <tr>
+    <td><img src="1.jpg" width="250"/></td>
+    <td><img src="2.jpg" width="250"/></td>
+    <td><img src="3.jpg" width="250"/></td>
+  </tr>
+  <tr>
+    <td><img src="4.jpg" width="250"/></td>
+    <td><img src="5.jpg" width="250"/></td>
+    <td></td>
+  </tr>
+</table>
+
 
 ## 🧱 Architecture
 
@@ -56,8 +68,3 @@ This project uses Firebase for authentication and database services.
     ```sh
     flutter run
     ```
-
-## 🚀 APK Download Link
-
-*(Optional: Add a link to your release APK here)*
-
