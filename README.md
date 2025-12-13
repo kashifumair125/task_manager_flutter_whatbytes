@@ -15,6 +15,12 @@ A simple task management app for gig workers that allows users to create, update
 
 ## 📸 Screenshots / Screen Recording
 
+<img src="1.jpg" alt="Description of screenshot" width="400"/>
+<img src="2.jpg" alt="Description of screenshot" width="400"/>
+<img src="3.jpg" alt="Description of screenshot" width="400"/>
+<img src="4.jpg" alt="Description of screenshot" width="400"/>
+<img src="5.jpg" alt="Description of screenshot" width="400"/>
+
 *(Add your screenshots or a screen recording here)*
 
 ## 🧱 Architecture
