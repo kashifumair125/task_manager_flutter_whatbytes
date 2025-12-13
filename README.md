@@ -1,8 +1,10 @@
 # Task Management App
 
-A simple task management app for gig workers that allows users to create, update, delete, and view tasks. Built with Flutter and Firebase, this project follows Clean Architecture principles and uses Riverpod for state management.
+## 📱 App Overview
 
-## Features
+A simple task management app for gig workers that allows users to create, update, delete, and view tasks. Built with Flutter and Firebase, this project is designed to be a practical and intuitive tool for managing daily tasks.
+
+## ✨ Features Implemented
 
 - **User Authentication**: Secure sign-up and login with email/password and Google Sign-In via Firebase Authentication.
 - **Task Management (CRUD)**: Create, read, update, and delete tasks with ease.
@@ -11,29 +13,30 @@ A simple task management app for gig workers that allows users to create, update
 - **Filtering and Sorting**: Filter tasks by priority and status, with all tasks automatically sorted by their due date.
 - **Clean UI**: A responsive and intuitive user interface built with Material Design principles.
 
-## Screenshots
+## 📸 Screenshots / Screen Recording
 
-*(Add your screenshots here)*
+*(Add your screenshots or a screen recording here)*
 
-## Architecture
+## 🧱 Architecture
 
-This project follows the principles of **Clean Architecture**, separating the codebase into three distinct layers:
+This project follows the principles of **Clean Architecture**, which separates the codebase into three distinct layers to ensure a modular, scalable, and maintainable structure:
 
-- **Data Layer**: Handles data sources, such as Firebase Firestore, and implements the repositories defined in the domain layer.
-- **Domain Layer**: Contains the core business logic, including entities, use cases, and repository contracts.
-- **Presentation Layer**: Manages the UI and state using Flutter and Riverpod. It includes all the screens, widgets, and providers.
+- **Data Layer**: This layer is responsible for all data-related operations. It handles data sources, such as Firebase Firestore, and implements the repositories defined in the domain layer.
+- **Domain Layer**: This is the core of the application, containing the business logic. It includes entities, use cases, and repository contracts, and is completely independent of the other layers.
+- **Presentation Layer**: This layer manages the UI and state. It includes all the screens, widgets, and providers, and it interacts with the domain layer through use cases.
 
-## Technologies Used
+## 🧠 State Management
 
-- **Framework**: Flutter
-- **Backend**: Firebase (Authentication, Firestore)
-- **State Management**: Riverpod
-- **Icons**: Font Awesome Flutter
-- **Date Formatting**: intl
-- **Unique IDs**: uuid
-- **Value Equality**: equatable
+**Riverpod** is used for state management in this project. It provides a simple and scalable way to manage state, making it easy to access and modify data from anywhere in the app while keeping the UI and business logic separate.
 
-## Setup and Installation
+## 🔐 Firebase Setup
+
+This project uses Firebase for authentication and database services.
+
+- **Firebase Authentication**: Handles user sign-up and login for both email/password and Google Sign-In.
+- **Cloud Firestore**: A NoSQL database used to store and manage all task-related data.
+
+## 🛠 How to Run the App
 
 1.  **Clone the repository**:
     ```sh
@@ -53,4 +56,8 @@ This project follows the principles of **Clean Architecture**, separating the co
     ```sh
     flutter run
     ```
+
+## 🚀 APK Download Link
+
+*(Optional: Add a link to your release APK here)*
 
