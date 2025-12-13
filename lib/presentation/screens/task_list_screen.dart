@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../domain/entities/filter.dart';
 import '../../domain/entities/task_entity.dart';
 import '../providers/auth_provider.dart';
 import '../providers/filter_provider.dart';
 import '../providers/task_provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'edit_task_screen.dart';
 
 class TaskListScreen extends ConsumerStatefulWidget {
@@ -18,10 +18,20 @@ class TaskListScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskListScreenState extends ConsumerState<TaskListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadTasks());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _loadTasks() {
@@ -32,14 +42,23 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
     }
   }
 
+  List<TaskEntity> _filterTasks(List<TaskEntity> tasks) {
+    if (_searchQuery.isEmpty) return tasks;
+    return tasks.where((task) {
+      return task.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          task.description.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
   Map<String, List<TaskEntity>> _groupTasks(List<TaskEntity> tasks) {
+    final filteredTasks = _filterTasks(tasks);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
     final grouped = <String, List<TaskEntity>>{'Today': [], 'Tomorrow': [], 'This week': []};
 
-    for (final task in tasks) {
+    for (final task in filteredTasks) {
       final taskDate = DateTime(task.dueDate.year, task.dueDate.month, task.dueDate.day);
       if (taskDate.isAtSameMomentAs(today)) {
         grouped['Today']!.add(task);
@@ -76,7 +95,11 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 '${DateFormat('d MMMM').format(DateTime.now())}, My Tasks',
-                style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               background: Container(
                 decoration: BoxDecoration(
@@ -88,35 +111,96 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.magnifyingGlass, color: Colors.white, size: 24),
-                tooltip: 'Search Tasks',
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.sliders, color: Colors.white, size: 24),
-                tooltip: 'Filter Tasks',
-                onPressed: _showFilterDialog,
-              ),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.rightFromBracket, color: Colors.white, size: 24),
-                tooltip: 'Logout',
-                onPressed: () => ref.read(logoutUseCaseProvider).call(),
-              ),
-            ],
+            leading: _isSearching
+                ? IconButton(
+                    icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.white, size: 22),
+                    onPressed: () {
+                      setState(() {
+                        _isSearching = false;
+                        _searchQuery = '';
+                        _searchController.clear();
+                      });
+                    },
+                    padding: EdgeInsets.zero,
+                  )
+                : IconButton(
+                    icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.white, size: 22),
+                    onPressed: () => Navigator.of(context).pop(),
+                    tooltip: 'Back',
+                  ),
+            actions: _isSearching
+                ? []
+                : [
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.magnifyingGlass, color: Colors.white, size: 22),
+                      tooltip: 'Search Tasks',
+                      onPressed: () {
+                        setState(() {
+                          _isSearching = true;
+                        });
+                      },
+                      padding: EdgeInsets.zero,
+                    ),
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.filter, color: Colors.white, size: 22),
+                      tooltip: 'Filter Tasks',
+                      onPressed: _showFilterDialog,
+                      padding: EdgeInsets.zero,
+                    ),
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.rightFromBracket, color: Colors.white, size: 22),
+                      tooltip: 'Logout',
+                      onPressed: () => ref.read(logoutUseCaseProvider).call(),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
+            title: _isSearching
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      hintText: 'Search tasks...',
+                      hintStyle: TextStyle(color: Colors.white70),
+                      border: InputBorder.none,
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: FaIcon(FontAwesomeIcons.magnifyingGlass, color: Colors.white, size: 20),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  )
+                : null,
           ),
           tasks.isEmpty
-              ? const SliverFillRemaining(
+              ? SliverFillRemaining(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.task_alt, size: 80, color: Colors.deepPurple),
+                        FaIcon(
+                          FontAwesomeIcons.circleCheck,
+                          size: 80,
+                          color: Colors.deepPurple,
+                        ),
                         SizedBox(height: 20),
-                        Text('No tasks yet.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                        Text(
+                          'No tasks yet.',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
                         SizedBox(height: 8),
-                        Text('Create one to get started!', style: TextStyle(color: Colors.grey)),
+                        Text(
+                          'Create one to get started!',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ],
                     ),
                   ),
@@ -153,10 +237,15 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditTaskScreen())),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EditTaskScreen()),
+        ),
         backgroundColor: Colors.deepPurple,
         tooltip: 'Add New Task',
-        child: const Icon(FontAwesomeIcons.plus, color: Colors.white, size: 28),
+        child: const Center(
+          child: FaIcon(FontAwesomeIcons.plus, color: Colors.white, size: 28),
+        ),
       ),
     );
   }
@@ -176,19 +265,59 @@ class _FilterDialog extends ConsumerWidget {
         children: [
           DropdownButtonFormField<Priority?>(
             value: filter.priority,
-            decoration: const InputDecoration(labelText: 'Priority'),
-            items: [const DropdownMenuItem(value: null, child: Text('All')), ...Priority.values.map((p) => DropdownMenuItem(value: p, child: Text(p.name)))],
-            onChanged: (val) => ref.read(filterProvider.notifier).state = Filter(priority: val, status: filter.status),
+            icon: const FaIcon(FontAwesomeIcons.chevronDown, size: 16),
+            decoration: InputDecoration(
+              labelText: 'Priority',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                child: FaIcon(FontAwesomeIcons.flag, size: 20, color: Colors.deepPurple),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('All')),
+              ...Priority.values.map(
+                (p) => DropdownMenuItem(
+                  value: p,
+                  child: Text(p.name),
+                ),
+              )
+            ],
+            onChanged: (val) => ref.read(filterProvider.notifier).state = Filter(
+              priority: val,
+              status: filter.status,
+            ),
           ),
+          const SizedBox(height: 16),
           DropdownButtonFormField<bool?>(
             value: filter.status,
-            decoration: const InputDecoration(labelText: 'Status'),
-            items: const [DropdownMenuItem(value: null, child: Text('All')), DropdownMenuItem(value: true, child: Text('Completed')), DropdownMenuItem(value: false, child: Text('Incomplete'))],
-            onChanged: (val) => ref.read(filterProvider.notifier).state = Filter(priority: filter.priority, status: val),
+            icon: const FaIcon(FontAwesomeIcons.chevronDown, size: 16),
+            decoration: InputDecoration(
+              labelText: 'Status',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                child: FaIcon(FontAwesomeIcons.clipboardCheck, size: 20, color: Colors.deepPurple),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('All')),
+              DropdownMenuItem(value: true, child: Text('Completed')),
+              DropdownMenuItem(value: false, child: Text('Incomplete'))
+            ],
+            onChanged: (val) => ref.read(filterProvider.notifier).state = Filter(
+              priority: filter.priority,
+              status: val,
+            ),
           ),
         ],
       ),
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Done'))],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Done'),
+        )
+      ],
     );
   }
 }
@@ -223,7 +352,10 @@ class _TaskCard extends ConsumerWidget {
           scale: 1.2,
           child: Checkbox(
             value: task.isCompleted,
-            onChanged: (val) => ref.read(tasksProvider.notifier).markTaskComplete(task.id, val ?? false),
+            onChanged: (val) => ref.read(tasksProvider.notifier).markTaskComplete(
+                  task.id,
+                  val ?? false,
+                ),
             checkColor: Colors.white,
             activeColor: Colors.deepPurple,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -250,13 +382,12 @@ class _TaskCard extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        trailing: SizedBox(
-          width: 150,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getPriorityColor(task.priority).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -266,26 +397,31 @@ class _TaskCard extends ConsumerWidget {
                   style: TextStyle(
                     color: _getPriorityColor(task.priority),
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.penToSquare, color: Colors.deepPurple, size: 18),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => EditTaskScreen(task: task)),
-                ),
-                tooltip: 'Edit',
+            ),
+            const SizedBox(width: 6),
+            IconButton(
+              icon: FaIcon(FontAwesomeIcons.pencil, color: Colors.deepPurple, size: 18),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => EditTaskScreen(task: task)),
               ),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 18),
-                onPressed: () => ref.read(tasksProvider.notifier).deleteTask(task.id),
-                tooltip: 'Delete',
-              ),
-            ],
-          ),
+              tooltip: 'Edit',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+            IconButton(
+              icon: FaIcon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 18),
+              onPressed: () => ref.read(tasksProvider.notifier).deleteTask(task.id),
+              tooltip: 'Delete',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+          ],
         ),
       ),
     );

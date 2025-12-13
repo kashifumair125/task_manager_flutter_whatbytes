@@ -1,6 +1,6 @@
-# task_manager_app
+# Task Management App
 
-A new Flutter project.
+A simple task management app for gig workers that allows users to create, update, delete, and view tasks.
 
 ## Getting Started
 

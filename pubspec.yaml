@@ -36,10 +36,10 @@ dependencies:
   riverpod: ^2.5.1  # State management
   flutter_riverpod: ^2.5.1
   intl: ^0.20.2  # For date formatting
-  cupertino_icons: ^1.0.8  # For iOS icons
+  cupertino_icons: ^1.0.8  # For iOS icons (not used, but kept for compatibility)
+  font_awesome_flutter: ^10.7.0  # Font Awesome icons
   uuid: ^4.5.2
   equatable: ^2.0.7
-  font_awesome_flutter: ^10.7.0
   google_sign_in: ^6.2.1
 
 dev_dependencies:

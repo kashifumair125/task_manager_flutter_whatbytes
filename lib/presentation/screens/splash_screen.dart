@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
@@ -20,7 +21,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   void _checkAuthStatus() async {
-    await Future.delayed(const Duration(seconds: 2)); 
+    await Future.delayed(const Duration(seconds: 2));
     final user = ref.read(authStateProvider).value;
     if (mounted) {
       if (user != null) {
@@ -58,12 +59,32 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.task_alt, size: 100, color: Colors.deepPurple),
+              child: const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.circleCheck,
+                  size: 100,
+                  color: Colors.deepPurple,
+                ),
+              ),
             ),
             const SizedBox(height: 30),
-            const Text('Task Manager', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+            const Text(
+              'Task Manager',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepPurple,
+              ),
+            ),
             const SizedBox(height: 10),
-            Text('Organize Your Tasks', style: TextStyle(fontSize: 14, color: Colors.deepPurple.shade600, fontWeight: FontWeight.w500)),
+            Text(
+              'Organize Your Tasks',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.deepPurple.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 40),
             const CircularProgressIndicator(color: Colors.deepPurple),
           ],
@@ -86,18 +107,28 @@ class OnboardingScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Spacer(),
-            const Icon(Icons.task_alt, size: 120, color: Colors.deepPurple),
+            const Center(
+              child: FaIcon(
+                FontAwesomeIcons.circleCheck,
+                size: 120,
+                color: Colors.deepPurple,
+              ),
+            ),
             const SizedBox(height: 32),
             Text(
               'Get things done.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
             Text(
               'Just a click away from planning your tasks.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
             ),
             const Spacer(),
             ElevatedButton(
@@ -112,7 +143,10 @@ class OnboardingScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Get Started', style: TextStyle(fontSize: 16, color: Colors.white)),
+              child: const Text(
+                'Get Started',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ),
             const SizedBox(height: 40),
           ],

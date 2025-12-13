@@ -33,6 +33,30 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
+  void _signInWithGoogle() async {
+    setState(() {
+      _error = null;
+      _isLoading = true;
+    });
+
+    try {
+      await ref.read(signInWithGoogleUseCaseProvider).call();
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const TaskListScreen()),
+        );
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   void _register() async {
     setState(() {
       _error = null;
@@ -91,7 +115,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.task_alt, size: 80, color: Colors.deepPurple),
+                child: const Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.circleCheck,
+                    size: 80,
+                    color: Colors.deepPurple,
+                  ),
+                ),
               ),
               const SizedBox(height: 30),
               Text(
@@ -113,12 +143,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               const SizedBox(height: 40),
               TextField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email Address',
                   hintText: 'Enter your email',
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: FaIcon(FontAwesomeIcons.envelope, color: Colors.deepPurple, size: 24),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
                   ),
                 ),
               ),
@@ -129,13 +171,28 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 decoration: InputDecoration(
                   labelText: 'Password',
                   hintText: 'Enter your password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: FaIcon(FontAwesomeIcons.lock, color: Colors.deepPurple, size: 24),
+                  ),
                   suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: FaIcon(
+                      _isPasswordVisible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+                      color: Colors.deepPurple,
+                      size: 24,
+                    ),
                     onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
                   ),
                 ),
               ),
@@ -174,7 +231,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Sign up', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                    : const Text(
+                        'Sign up',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
               const SizedBox(height: 24),
               const Row(
@@ -182,7 +246,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text('or continue with', style: TextStyle(color: Colors.grey)),
+                    child: Text(
+                      'or continue with',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                   Expanded(child: Divider()),
                 ],
@@ -195,6 +262,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     icon: FontAwesomeIcons.google,
                     color: Colors.red.shade700,
                     label: 'Google',
+                    onPressed: _signInWithGoogle,
                   ),
                 ],
               ),
@@ -202,10 +270,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Already have an account?', style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    'Already have an account?',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Log in', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Log in',
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -220,16 +297,34 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     required IconData icon,
     required Color color,
     required String label,
+    required VoidCallback onPressed,
   }) {
     return Column(
       children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: color.withOpacity(0.1),
-          child: Icon(icon, color: color, size: 24),
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withOpacity(0.1),
+            border: Border.all(color: color.withOpacity(0.3), width: 2),
+          ),
+          child: Center(
+            child: IconButton(
+              onPressed: onPressed,
+              icon: FaIcon(icon, color: color, size: 28),
+              padding: EdgeInsets.zero,
+            ),
+          ),
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }

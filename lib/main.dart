@@ -41,10 +41,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.grey.shade50,
+        // Ensure Material Icons are properly loaded
+        iconTheme: const IconThemeData(),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.deepPurple,
           foregroundColor: Colors.white,
           elevation: 2,
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,

@@ -34,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-    void _signInWithGoogle() async {
+  void _signInWithGoogle() async {
     setState(() {
       _error = null;
       _isLoading = true;
@@ -116,7 +116,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.task_alt, size: 80, color: Colors.deepPurple),
+                child: const Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.circleCheck,
+                    size: 80,
+                    color: Colors.deepPurple,
+                  ),
+                ),
               ),
               const SizedBox(height: 30),
               Text(
@@ -138,12 +144,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 40),
               TextField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email Address',
                   hintText: 'Enter your email',
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: FaIcon(FontAwesomeIcons.envelope, color: Colors.deepPurple, size: 24),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
                   ),
                 ),
               ),
@@ -154,13 +172,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 decoration: InputDecoration(
                   labelText: 'Password',
                   hintText: 'Enter your password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: FaIcon(FontAwesomeIcons.lock, color: Colors.deepPurple, size: 24),
+                  ),
                   suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: FaIcon(
+                      _isPasswordVisible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+                      color: Colors.deepPurple,
+                      size: 24,
+                    ),
                     onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
                   ),
                 ),
               ),
@@ -206,7 +239,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Log In', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                    : const Text(
+                        'Log In',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
               const SizedBox(height: 24),
               const Row(
@@ -214,7 +254,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text('or continue with', style: TextStyle(color: Colors.grey)),
+                    child: Text(
+                      'or continue with',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                   Expanded(child: Divider()),
                 ],
@@ -235,13 +278,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    "Don't have an account?",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                   TextButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SignupScreen()),
                     ),
-                    child: const Text('Sign up', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Sign up',
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -260,16 +312,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }) {
     return Column(
       children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: color.withOpacity(0.1),
-          child: IconButton(
-            onPressed: onPressed,
-            icon: Icon(icon, color: color, size: 24),
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withOpacity(0.1),
+            border: Border.all(color: color.withOpacity(0.3), width: 2),
+          ),
+          child: Center(
+            child: IconButton(
+              onPressed: onPressed,
+              icon: FaIcon(icon, color: color, size: 28),
+              padding: EdgeInsets.zero,
+            ),
           ),
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }

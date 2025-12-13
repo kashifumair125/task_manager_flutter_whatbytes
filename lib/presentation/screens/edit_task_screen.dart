@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../domain/entities/task_entity.dart';
 import '../providers/task_provider.dart';
@@ -27,7 +28,7 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.task?.title ?? '');
     _descriptionController = TextEditingController(text: widget.task?.description ?? '');
-    _selectedDueDate = widget.task?.dueDate ?? DateTime.now().add(const Duration(days: 1));
+    _selectedDueDate = widget.task?.dueDate ?? DateTime.now();
     _selectedPriority = widget.task?.priority ?? Priority.medium;
   }
 
@@ -90,6 +91,11 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.white, size: 22),
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Back',
+        ),
         title: Text(widget.task == null ? 'New Task' : 'Edit Task'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
@@ -99,9 +105,9 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildTextField(controller: _titleController, label: 'Task Title', icon: Icons.title),
+            _buildTextField(controller: _titleController, label: 'Task Title', icon: FontAwesomeIcons.heading),
             const SizedBox(height: 16),
-            _buildTextField(controller: _descriptionController, label: 'Description', maxLines: 4, icon: Icons.description),
+            _buildTextField(controller: _descriptionController, label: 'Description', maxLines: 4, icon: FontAwesomeIcons.fileLines),
             const SizedBox(height: 24),
             _buildPrioritySelector(),
             const SizedBox(height: 24),
@@ -130,7 +136,12 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: icon != null ? Icon(icon, color: Colors.deepPurple) : null,
+        prefixIcon: icon != null 
+          ? Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: FaIcon(icon, color: Colors.deepPurple, size: 24),
+            )
+          : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.deepPurple.shade200),
@@ -152,9 +163,13 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
   Widget _buildPrioritySelector() {
     return DropdownButtonFormField<Priority>(
       value: _selectedPriority,
+      icon: const FaIcon(FontAwesomeIcons.chevronDown, size: 16),
       decoration: InputDecoration(
         labelText: 'Priority',
-        prefixIcon: const Icon(Icons.flag_outlined, color: Colors.deepPurple),
+        prefixIcon: const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: FaIcon(FontAwesomeIcons.flag, color: Colors.deepPurple, size: 24),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.deepPurple.shade200),
@@ -197,12 +212,12 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: const Icon(Icons.calendar_today, color: Colors.deepPurple),
+        leading: const FaIcon(FontAwesomeIcons.calendar, color: Colors.deepPurple, size: 24),
         title: Text(
           DateFormat('d MMMM yyyy').format(_selectedDueDate),
           style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
-        trailing: Icon(Icons.arrow_forward, color: Colors.deepPurple.shade400),
+        trailing: FaIcon(FontAwesomeIcons.arrowRight, color: Colors.deepPurple.shade400, size: 20),
         onTap: _selectDueDate,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
