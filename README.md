@@ -68,8 +68,3 @@ This project uses Firebase for authentication and database services.
     ```sh
     flutter run
     ```
-
-## 🚀 APK Download Link
-
-*(Optional: Add a link to your release APK here)*
-
