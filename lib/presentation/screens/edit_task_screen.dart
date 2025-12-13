@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/task_entity.dart';
@@ -26,7 +27,7 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.task?.title ?? '');
     _descriptionController = TextEditingController(text: widget.task?.description ?? '');
-    _selectedDueDate = widget.task?.dueDate ?? DateTime.now().add(Duration(days: 1));
+    _selectedDueDate = widget.task?.dueDate ?? DateTime.now().add(const Duration(days: 1));
     _selectedPriority = widget.task?.priority ?? Priority.medium;
   }
 
@@ -42,7 +43,7 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
       context: context,
       initialDate: _selectedDueDate,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null && picked != _selectedDueDate) {
       setState(() {
@@ -62,41 +63,26 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final task = TaskEntity(
+        id: widget.task?.id ?? const Uuid().v4(),
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        dueDate: _selectedDueDate,
+        priority: _selectedPriority,
+        isCompleted: widget.task?.isCompleted ?? false,
+      );
+
       if (widget.task == null) {
-        // Create new task
-        final newTask = TaskEntity(
-          id: const Uuid().v4(),
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          dueDate: _selectedDueDate,
-          priority: _selectedPriority,
-          isCompleted: false,
-        );
-        await ref.read(tasksProvider.notifier).addTask(newTask);
+        await ref.read(tasksProvider.notifier).addTask(task);
       } else {
-        // Update existing task
-        final updatedTask = TaskEntity(
-          id: widget.task!.id,
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          dueDate: _selectedDueDate,
-          priority: _selectedPriority,
-          isCompleted: widget.task!.isCompleted,
-        );
-        await ref.read(tasksProvider.notifier).updateTask(updatedTask);
+        await ref.read(tasksProvider.notifier).updateTask(task);
       }
 
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -105,101 +91,78 @@ class _EditTaskScreenState extends ConsumerState<EditTaskScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.task == null ? 'New Task' : 'Edit Task'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Task Title',
-                style: Theme.of(context).textTheme.titleMedium,
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildTextField(controller: _titleController, label: 'Task Title', icon: Icons.title),
+            const SizedBox(height: 16),
+            _buildTextField(controller: _descriptionController, label: 'Description', maxLines: 4, icon: Icons.description),
+            const SizedBox(height: 24),
+            _buildPrioritySelector(),
+            const SizedBox(height: 24),
+            _buildDueDateSelector(),
+            const SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _saveTask,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              SizedBox(height: 8),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  hintText: 'Enter task title',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Description',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  hintText: 'Enter task description',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 4,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Priority',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              SizedBox(height: 8),
-              DropdownButton<Priority>(
-                value: _selectedPriority,
-                isExpanded: true,
-                items: Priority.values
-                    .map((p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            p.name.toUpperCase(),
-                            style: TextStyle(
-                              color: _getPriorityColor(p),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (Priority? value) {
-                  setState(() {
-                    _selectedPriority = value ?? Priority.medium;
-                  });
-                },
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Due Date',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              SizedBox(height: 8),
-              ListTile(
-                title: Text(
-                  _selectedDueDate.toString().split(' ')[0],
-                  style: const TextStyle(fontSize: 16),
-                ),
-                trailing: Icon(Icons.calendar_today),
-                onTap: _selectDueDate,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(color: Colors.grey),
-                ),
-              ),
-              SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveTask,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(widget.task == null ? 'Create Task' : 'Update Task'),
-                ),
-              ),
-            ],
-          ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text(widget.task == null ? 'Create Task' : 'Update Task', style: const TextStyle(fontSize: 16, color: Colors.white)),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({required TextEditingController controller, required String label, int maxLines = 1, IconData? icon}) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: icon != null ? Icon(icon) : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildPrioritySelector() {
+    return DropdownButtonFormField<Priority>(
+      value: _selectedPriority,
+      decoration: InputDecoration(
+        labelText: 'Priority',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      items: Priority.values.map((p) {
+        return DropdownMenuItem(
+          value: p,
+          child: Text(p.name.toUpperCase(), style: TextStyle(color: _getPriorityColor(p))),
+        );
+      }).toList(),
+      onChanged: (Priority? value) {
+        if (value != null) setState(() => _selectedPriority = value);
+      },
+    );
+  }
+
+  Widget _buildDueDateSelector() {
+    return ListTile(
+      title: Text(DateFormat('d MMMM yyyy').format(_selectedDueDate)),
+      trailing: const Icon(Icons.calendar_today),
+      onTap: _selectDueDate,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade400),
       ),
     );
   }

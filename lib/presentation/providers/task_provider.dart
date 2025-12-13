@@ -36,49 +36,34 @@ final markTaskCompleteUseCaseProvider = Provider<MarkTaskCompleteUseCase>(
 );
 
 class TasksNotifier extends Notifier<List<TaskEntity>> {
-  final GetTasksUseCase _getTasks;
-  final CreateTaskUseCase _createTask;
-  final UpdateTaskUseCase _updateTask;
-  final DeleteTaskUseCase _deleteTask;
-  final MarkTaskCompleteUseCase _markTaskComplete;
-
-  TasksNotifier(
-    this._getTasks,
-    this._createTask,
-    this._updateTask,
-    this._deleteTask,
-    this._markTaskComplete,
-  );
-
   @override
   List<TaskEntity> build() => [];
 
-  void loadTasks(
-    String userId, {
-    Priority? priority,
-    bool? status,
-  }) {
-    _getTasks.call(userId, priorityFilter: priority, statusFilter: status).listen(
-      (tasks) {
-        state = _sortByDueDate(tasks);
-      },
-    );
+  TaskRepository get _repo => ref.read(taskRepositoryProvider);
+
+  void loadTasks({Priority? priority, bool? status}) {
+    final userId = ref.read(authStateProvider).value?.uid;
+    if (userId == null) return;
+
+    _repo.getTasks(userId, priorityFilter: priority, statusFilter: status).listen((tasks) {
+      state = _sortByDueDate(tasks);
+    });
   }
 
   Future<void> addTask(TaskEntity task) async {
-    await _createTask.call(task);
+    await _repo.createTask(task);
   }
 
   Future<void> updateTask(TaskEntity task) async {
-    await _updateTask.call(task);
+    await _repo.updateTask(task);
   }
 
   Future<void> deleteTask(String taskId) async {
-    await _deleteTask.call(taskId);
+    await _repo.deleteTask(taskId);
   }
 
   Future<void> markTaskComplete(String taskId, bool isCompleted) async {
-    await _markTaskComplete.call(taskId, isCompleted);
+    await _repo.markTaskComplete(taskId, isCompleted);
   }
 
   List<TaskEntity> _sortByDueDate(List<TaskEntity> tasks) {
@@ -88,20 +73,4 @@ class TasksNotifier extends Notifier<List<TaskEntity>> {
   }
 }
 
-final tasksProvider = NotifierProvider<TasksNotifier, List<TaskEntity>>(
-  () {
-    final getTasks = GetTasksUseCase(TaskRepositoryImpl(''));
-    final createTask = CreateTaskUseCase(TaskRepositoryImpl(''));
-    final updateTask = UpdateTaskUseCase(TaskRepositoryImpl(''));
-    final deleteTask = DeleteTaskUseCase(TaskRepositoryImpl(''));
-    final markTaskComplete = MarkTaskCompleteUseCase(TaskRepositoryImpl(''));
-
-    return TasksNotifier(
-      getTasks,
-      createTask,
-      updateTask,
-      deleteTask,
-      markTaskComplete,
-    );
-  },
-);
+final tasksProvider = NotifierProvider<TasksNotifier, List<TaskEntity>>(TasksNotifier.new);

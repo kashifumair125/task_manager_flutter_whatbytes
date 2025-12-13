@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../domain/entities/filter.dart';
 import '../../domain/entities/task_entity.dart';
 import '../providers/auth_provider.dart';
+import '../providers/filter_provider.dart';
 import '../providers/task_provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../widgets/glassmorphic_container.dart';
 import 'edit_task_screen.dart';
 
 class TaskListScreen extends ConsumerStatefulWidget {
@@ -15,46 +19,163 @@ class TaskListScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskListScreenState extends ConsumerState<TaskListScreen> {
-  Priority? _priorityFilter;
-  bool? _statusFilter;
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = ref.read(authStateProvider).value?.uid;
-      if (userId != null) {
-        ref.read(tasksProvider.notifier).loadTasks(userId);
-      }
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadTasks());
+  }
+
+  void _loadTasks() {
+    final userId = ref.read(authStateProvider).value?.uid;
+    if (userId != null) {
+      final filter = ref.read(filterProvider);
+      ref.read(tasksProvider.notifier).loadTasks(priority: filter.priority, status: filter.status);
+    }
   }
 
   Map<String, List<TaskEntity>> _groupTasks(List<TaskEntity> tasks) {
-    final today = DateTime.now();
-    final tomorrow = DateTime(today.year, today.month, today.day + 1);
-    final thisWeekEnd = today.add(Duration(days: 7));
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
-    return {
-      'Today': tasks
-          .where((t) {
-            final taskDate = DateTime(t.dueDate.year, t.dueDate.month, t.dueDate.day);
-            final todayDate = DateTime(today.year, today.month, today.day);
-            return taskDate.isAtSameMomentAs(todayDate);
-          })
-          .toList(),
-      'Tomorrow': tasks
-          .where((t) {
-            final taskDate = DateTime(t.dueDate.year, t.dueDate.month, t.dueDate.day);
-            return taskDate.isAtSameMomentAs(tomorrow);
-          })
-          .toList(),
-      'This Week': tasks
-          .where((t) {
-            final taskDate = DateTime(t.dueDate.year, t.dueDate.month, t.dueDate.day);
-            return taskDate.isAfter(tomorrow) && taskDate.isBefore(thisWeekEnd);
-          })
-          .toList(),
-    };
+    final grouped = <String, List<TaskEntity>>{'Today': [], 'Tomorrow': [], 'This week': []};
+
+    for (final task in tasks) {
+      final taskDate = DateTime(task.dueDate.year, task.dueDate.month, task.dueDate.day);
+      if (taskDate.isAtSameMomentAs(today)) {
+        grouped['Today']!.add(task);
+      } else if (taskDate.isAtSameMomentAs(tomorrow)) {
+        grouped['Tomorrow']!.add(task);
+      } else {
+        grouped['This week']!.add(task);
+      }
+    }
+    return grouped;
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const _FilterDialog(),
+    ).then((_) => _loadTasks());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tasks = ref.watch(tasksProvider);
+    final groupedTasks = _groupTasks(tasks);
+
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            floating: true,
+            pinned: true,
+            expandedHeight: 120,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text('${DateFormat('d MMMM').format(DateTime.now())}, My Tasks', style: const TextStyle(fontSize: 16, color: Colors.white)),
+              background: GlassmorphicContainer(
+                borderRadius: 0,
+                child: Container(),
+              ),
+            ),
+            actions: [
+              IconButton(icon: const Icon(Icons.search, color: Colors.white), onPressed: () {}),
+              IconButton(icon: const Icon(Icons.filter_list, color: Colors.white), onPressed: _showFilterDialog),
+              IconButton(icon: const Icon(Icons.logout, color: Colors.white), onPressed: () => ref.read(logoutUseCaseProvider).call()),
+            ],
+          ),
+          tasks.isEmpty
+              ? const SliverFillRemaining(child: Center(child: Text('No tasks yet. Create one!')))
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final groupTitle = groupedTasks.keys.elementAt(index);
+                      final groupTasks = groupedTasks[groupTitle]!;
+
+                      if (groupTasks.isEmpty) return const SizedBox.shrink();
+
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(groupTitle, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            ...groupTasks.map((task) => _TaskCard(task: task)),
+                          ],
+                        ),
+                      );
+                    },
+                    childCount: groupedTasks.length,
+                  ),
+                ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditTaskScreen())),
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _FilterDialog extends ConsumerWidget {
+  const _FilterDialog();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(filterProvider);
+
+    return AlertDialog(
+      title: const Text('Filter Tasks'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButtonFormField<Priority?>(
+            value: filter.priority,
+            decoration: const InputDecoration(labelText: 'Priority'),
+            items: [const DropdownMenuItem(value: null, child: Text('All')), ...Priority.values.map((p) => DropdownMenuItem(value: p, child: Text(p.name)))],
+            onChanged: (val) => ref.read(filterProvider.notifier).state = Filter(priority: val, status: filter.status),
+          ),
+          DropdownButtonFormField<bool?>(
+            value: filter.status,
+            decoration: const InputDecoration(labelText: 'Status'),
+            items: const [DropdownMenuItem(value: null, child: Text('All')), DropdownMenuItem(value: true, child: Text('Completed')), DropdownMenuItem(value: false, child: Text('Incomplete'))],
+            onChanged: (val) => ref.read(filterProvider.notifier).state = Filter(priority: filter.priority, status: val),
+          ),
+        ],
+      ),
+      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Done'))],
+    );
+  }
+}
+
+class _TaskCard extends ConsumerWidget {
+  final TaskEntity task;
+
+  const _TaskCard({required this.task});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GlassmorphicContainer(
+      child: ListTile(
+        leading: Checkbox(value: task.isCompleted, onChanged: (val) => ref.read(tasksProvider.notifier).markTaskComplete(task.id, val ?? false), checkColor: Colors.white, activeColor: Colors.deepPurple),
+        title: Text(task.title, style: TextStyle(decoration: task.isCompleted ? TextDecoration.lineThrough : null, color: Colors.white, fontWeight: FontWeight.bold)),
+        subtitle: Text(task.description, style: TextStyle(color: Colors.white70)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Chip(label: Text(task.priority.name, style: const TextStyle(color: Colors.white)), backgroundColor: _getPriorityColor(task.priority)),
+            IconButton(icon: const Icon(FontAwesomeIcons.penToSquare, color: Colors.white, size: 20), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EditTaskScreen(task: task)))),
+            IconButton(icon: const Icon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 20), onPressed: () => ref.read(tasksProvider.notifier).deleteTask(task.id)),
+          ],
+        ),
+      ),
+    );
   }
 
   Color _getPriorityColor(Priority p) {
@@ -66,184 +187,5 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
       case Priority.high:
         return Colors.red;
     }
-  }
-
-  void _logout() async {
-    await ref.read(logoutUseCaseProvider).call();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tasks = ref.watch(tasksProvider);
-    final groupedTasks = _groupTasks(tasks);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Tasks'),
-        actions: [
-          PopupMenuButton<Priority?>(
-            initialValue: _priorityFilter,
-            onSelected: (Priority? value) {
-              setState(() => _priorityFilter = value);
-              final userId = ref.read(authStateProvider).value?.uid;
-              if (userId != null) {
-                ref.read(tasksProvider.notifier).loadTasks(
-                  userId,
-                  priority: value,
-                  status: _statusFilter,
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [null, ...Priority.values]
-                  .map((p) => PopupMenuItem<Priority?>(
-                        value: p,
-                        child: Text(p?.name ?? 'All Priority'),
-                      ))
-                  .toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Center(
-                child: Text(_priorityFilter?.name ?? 'Priority'),
-              ),
-            ),
-          ),
-          PopupMenuButton<bool?>(
-            initialValue: _statusFilter,
-            onSelected: (bool? value) {
-              setState(() => _statusFilter = value);
-              final userId = ref.read(authStateProvider).value?.uid;
-              if (userId != null) {
-                ref.read(tasksProvider.notifier).loadTasks(
-                  userId,
-                  priority: _priorityFilter,
-                  status: value,
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [null, true, false]
-                  .map((s) => PopupMenuItem<bool?>(
-                        value: s,
-                        child: Text(
-                          s == null ? 'All Status' : s ? 'Completed' : 'Incomplete',
-                        ),
-                      ))
-                  .toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Center(
-                child: Text(_statusFilter == null ? 'Status' : _statusFilter! ? 'Completed' : 'Incomplete'),
-              ),
-            ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (String value) {
-              if (value == 'logout') {
-                _logout();
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Text('Logout'),
-                ),
-              ];
-            },
-          ),
-        ],
-      ),
-      body: tasks.isEmpty
-          ? const Center(
-              child: Text('No tasks yet. Create one to get started!'),
-            )
-          : ListView(
-              children: groupedTasks.entries.map((entry) {
-                if (entry.value.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        entry.key,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple,
-                            ),
-                      ),
-                    ),
-                    ...entry.value.map((task) {
-                      return ListTile(
-                        leading: Checkbox(
-                          value: task.isCompleted,
-                          onChanged: (val) {
-                            ref.read(tasksProvider.notifier).markTaskComplete(task.id, val ?? false);
-                          },
-                        ),
-                        title: Text(
-                          task.title,
-                          style: TextStyle(
-                            decoration: task.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${DateFormat('d MMM').format(task.dueDate)} • ${task.description}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: SizedBox(
-                          width: 150,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Chip(
-                                label: Text(
-                                  task.priority.name,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: _getPriorityColor(task.priority),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 20),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EditTaskScreen(task: task),
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                                onPressed: () => ref
-                                    .read(tasksProvider.notifier)
-                                    .deleteTask(task.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                );
-              }).toList(),
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const EditTaskScreen()),
-        ),
-        backgroundColor: Colors.purple,
-        child: const Icon(Icons.add),
-      ),
-    );
   }
 }

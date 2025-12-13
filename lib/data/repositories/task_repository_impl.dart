@@ -13,9 +13,9 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<void> createTask(TaskEntity task) async {
     await _firestore
-        .collection('users')
-        .doc(_userId)
         .collection('tasks')
+        .doc(_userId)
+        .collection('userTasks')
         .doc(task.id)
         .set(TaskModel.fromEntity(task).toJson());
   }
@@ -23,9 +23,9 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<void> updateTask(TaskEntity task) async {
     await _firestore
-        .collection('users')
-        .doc(_userId)
         .collection('tasks')
+        .doc(_userId)
+        .collection('userTasks')
         .doc(task.id)
         .update(TaskModel.fromEntity(task).toJson());
   }
@@ -33,9 +33,9 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<void> deleteTask(String taskId) async {
     await _firestore
-        .collection('users')
-        .doc(_userId)
         .collection('tasks')
+        .doc(_userId)
+        .collection('userTasks')
         .doc(taskId)
         .delete();
   }
@@ -47,7 +47,7 @@ class TaskRepositoryImpl implements TaskRepository {
     bool? statusFilter,
   }) {
     Query query =
-        _firestore.collection('users').doc(userId).collection('tasks');
+        _firestore.collection('tasks').doc(userId).collection('userTasks');
 
     if (priorityFilter != null) {
       query = query.where('priority', isEqualTo: priorityFilter.name);
@@ -66,9 +66,9 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<void> markTaskComplete(String taskId, bool isCompleted) async {
     await _firestore
-        .collection('users')
-        .doc(_userId)
         .collection('tasks')
+        .doc(_userId)
+        .collection('userTasks')
         .doc(taskId)
         .update({'isCompleted': isCompleted});
   }
