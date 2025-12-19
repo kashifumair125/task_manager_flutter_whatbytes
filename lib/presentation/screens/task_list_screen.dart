@@ -327,6 +327,31 @@ class _TaskCard extends ConsumerWidget {
 
   const _TaskCard({required this.task});
 
+  void _confirmDelete(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Task'),
+        content: const Text(
+            'Are you sure you want to delete this task? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(tasksProvider.notifier).deleteTask(task.id);
+              Navigator.pop(ctx);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
@@ -415,8 +440,9 @@ class _TaskCard extends ConsumerWidget {
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
             IconButton(
-              icon: FaIcon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 18),
-              onPressed: () => ref.read(tasksProvider.notifier).deleteTask(task.id),
+              icon: FaIcon(FontAwesomeIcons.trash,
+                  color: Colors.redAccent, size: 18),
+              onPressed: () => _confirmDelete(context, ref),
               tooltip: 'Delete',
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
