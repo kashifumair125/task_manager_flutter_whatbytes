@@ -74,3 +74,9 @@ class TasksNotifier extends Notifier<List<TaskEntity>> {
 }
 
 final tasksProvider = NotifierProvider<TasksNotifier, List<TaskEntity>>(TasksNotifier.new);
+
+final completedTasksStreamProvider = StreamProvider.autoDispose<List<TaskEntity>>((ref) {
+  final userId = ref.watch(authStateProvider).value?.uid;
+  if (userId == null) return Stream.value([]);
+  return ref.watch(taskRepositoryProvider).getTasks(userId, statusFilter: true);
+});
